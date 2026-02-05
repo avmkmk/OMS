@@ -1,11 +1,16 @@
 package com.oms.order.service;
 
-import com.oms.order.client.InventoryClient;
-import com.oms.order.dto.InventoryResponse;
-import com.oms.order.dto.OrderDto;
-import com.oms.order.dto.ReservationRequest;
-import com.oms.order.model.Order;
-import com.oms.order.repository.OrderRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.math.BigDecimal;
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,14 +18,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
-import com.oms.order.event.KafkaEventPublisher;
+import com.oms.common.kafka.KafkaEventPublisher;
+import com.oms.order.client.InventoryClient;
+import com.oms.order.dto.InventoryResponse;
+import com.oms.order.dto.OrderDto;
+import com.oms.order.dto.ReservationRequest;
+import com.oms.order.model.Order;
+import com.oms.order.repository.OrderRepository;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceImplTest {
@@ -106,3 +110,4 @@ class OrderServiceImplTest {
         verify(inventoryClient, never()).reserveInventory(any());
     }
 }
+

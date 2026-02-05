@@ -1,10 +1,8 @@
-package com.oms.notification.event;
+package com.oms.api.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -15,6 +13,6 @@ public class BaseEvent<T> {
     private String entityType;
     private Long entityId;
     private String sourceService;
-    private LocalDateTime timestamp;
+    private String timestamp;
     private T payload;
 }

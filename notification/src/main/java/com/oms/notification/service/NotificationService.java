@@ -1,12 +1,15 @@
 package com.oms.notification.service;
 
-import com.oms.notification.model.NotificationEvent;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Random;
+
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
-import java.util.Random;
+import com.oms.notification.model.NotificationEvent;
+
+import io.micrometer.core.annotation.Timed;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -24,6 +27,7 @@ public class NotificationService {
             maxAttempts = 3,
             backoff = @Backoff(delay = 1000)
     )
+    @Timed(value = "notification.send", description = "Send notification with retry")
     public void sendNotification(NotificationEvent event) {
         log.info("Attempting to send notification for event: {}", event.getEventType());
         

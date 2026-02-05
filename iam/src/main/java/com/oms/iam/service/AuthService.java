@@ -1,16 +1,16 @@
 package com.oms.iam.service;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import com.oms.iam.dto.AuthDto;
 import com.oms.iam.model.Role;
 import com.oms.iam.model.Status;
 import com.oms.iam.model.User;
 import com.oms.iam.repository.UserRepository;
 import com.oms.iam.security.JwtUtil;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor

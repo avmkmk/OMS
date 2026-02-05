@@ -11,6 +11,8 @@
   <name>Order Management System</name>
 
   <modules>
+    <module>common</module>
+    <module>api</module>
     <module>iam</module>
     <module>order</module>
     <module>inventory</module>

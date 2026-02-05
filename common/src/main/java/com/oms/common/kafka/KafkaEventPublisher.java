@@ -1,21 +1,27 @@
-package com.oms.payment.event;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.stereotype.Component;
+package com.oms.common.kafka;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Component;
+
 @Component
-@RequiredArgsConstructor
-@Slf4j
+@ConditionalOnProperty(name = "oms.kafka.publisher.enabled", havingValue = "true")
 public class KafkaEventPublisher {
 
+    private static final Logger log = LoggerFactory.getLogger(KafkaEventPublisher.class);
+
     private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    public KafkaEventPublisher(KafkaTemplate<String, Object> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
 
     public void publishEvent(String topic, String eventType, String entityType, Long entityId,
             String sourceService, Map<String, Object> payload) {

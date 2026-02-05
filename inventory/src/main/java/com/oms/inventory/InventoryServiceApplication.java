@@ -2,12 +2,11 @@ package com.oms.inventory;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.support.converter.JsonMessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.oms")
 public class InventoryServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(InventoryServiceApplication.class, args);
@@ -18,3 +17,4 @@ public class InventoryServiceApplication {
         return new JsonMessageConverter();
     }
 }
+

@@ -1,8 +1,10 @@
 package com.oms.notification.service;
 
-import com.oms.notification.model.NotificationEvent;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import com.oms.notification.model.NotificationEvent;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j

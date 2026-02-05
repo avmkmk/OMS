@@ -1,4 +1,4 @@
-package com.oms.order.event;
+package com.oms.api.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

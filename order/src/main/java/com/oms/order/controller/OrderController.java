@@ -1,9 +1,5 @@
 package com.oms.order.controller;
 
-import com.oms.order.dto.OrderDto;
-import com.oms.order.service.OrderService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -11,7 +7,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.oms.order.dto.OrderDto;
+import com.oms.order.service.OrderService;
+
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/orders")
@@ -19,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
 
     private final OrderService orderService;
+    private final MeterRegistry meterRegistry;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
@@ -27,7 +38,14 @@ public class OrderController {
             @Valid @RequestBody OrderDto.CreateOrderRequest createRequest) {
 
         Long userId = jwt.getClaim("userId");
-        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(userId, createRequest));
+        Timer.Sample sample = Timer.start(meterRegistry);
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(userId, createRequest));
+        } finally {
+            sample.stop(Timer.builder("order.create")
+                    .description("Create order endpoint")
+                    .register(meterRegistry));
+        }
     }
 
     @GetMapping("/{orderId}")
@@ -37,7 +55,14 @@ public class OrderController {
             @PathVariable Long orderId) {
 
         Long userId = jwt.getClaim("userId");
-        return ResponseEntity.ok(orderService.getOrderById(userId, orderId));
+        Timer.Sample sample = Timer.start(meterRegistry);
+        try {
+            return ResponseEntity.ok(orderService.getOrderById(userId, orderId));
+        } finally {
+            sample.stop(Timer.builder("order.get")
+                    .description("Get order by id endpoint")
+                    .register(meterRegistry));
+        }
     }
 
     @GetMapping
@@ -49,6 +74,13 @@ public class OrderController {
 
         Long userId = jwt.getClaim("userId");
         Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(orderService.listUserOrders(userId, pageable));
+        Timer.Sample sample = Timer.start(meterRegistry);
+        try {
+            return ResponseEntity.ok(orderService.listUserOrders(userId, pageable));
+        } finally {
+            sample.stop(Timer.builder("order.list")
+                    .description("List user orders endpoint")
+                    .register(meterRegistry));
+        }
     }
 }

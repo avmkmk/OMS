@@ -1,12 +1,20 @@
 package com.oms.inventory.service;
 
-import com.oms.inventory.dto.ReservationRequest;
-import com.oms.inventory.dto.ReservationResponse;
-import com.oms.inventory.event.KafkaEventPublisher;
-import com.oms.inventory.exception.InsufficientStockException;
-import com.oms.inventory.exception.InventoryNotFoundException;
-import com.oms.inventory.model.Inventory;
-import com.oms.inventory.repository.InventoryRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,16 +22,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.*;
+import com.oms.common.kafka.KafkaEventPublisher;
+import com.oms.inventory.dto.ReservationRequest;
+import com.oms.inventory.dto.ReservationResponse;
+import com.oms.inventory.exception.InsufficientStockException;
+import com.oms.inventory.exception.InventoryNotFoundException;
+import com.oms.inventory.model.Inventory;
+import com.oms.inventory.repository.InventoryRepository;
 
 @ExtendWith(MockitoExtension.class)
 class InventoryServiceTest {
@@ -167,3 +172,4 @@ class InventoryServiceTest {
         verify(inventoryRepository, never()).save(any(Inventory.class));
     }
 }
+

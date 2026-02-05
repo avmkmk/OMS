@@ -1,14 +1,15 @@
 package com.oms.order.client;
 
-import com.oms.order.dto.InventoryResponse;
-import com.oms.order.dto.ReservationRequest;
-import com.oms.order.exception.OrderNotFoundException; // We might need a better exception
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+
+import com.oms.order.dto.InventoryResponse;
+import com.oms.order.dto.ReservationRequest;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @RequiredArgsConstructor

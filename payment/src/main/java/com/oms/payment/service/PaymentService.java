@@ -1,18 +1,22 @@
 package com.oms.payment.service;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.oms.common.kafka.KafkaEventPublisher;
 import com.oms.payment.dto.PaymentRequest;
 import com.oms.payment.dto.PaymentResponse;
 import com.oms.payment.model.Payment;
 import com.oms.payment.model.PaymentStatus;
 import com.oms.payment.repository.PaymentRepository;
+
+import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import com.oms.payment.event.KafkaEventPublisher;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +27,7 @@ public class PaymentService {
     private final KafkaEventPublisher kafkaEventPublisher;
 
     @Transactional
+    @Timed(value = "payment.process", description = "Process payment for an order")
     public PaymentResponse processPayment(PaymentRequest request) {
         log.info("Processing payment for order: {}", request.getOrderId());
 
@@ -100,3 +105,4 @@ public class PaymentService {
                 .build();
     }
 }
+

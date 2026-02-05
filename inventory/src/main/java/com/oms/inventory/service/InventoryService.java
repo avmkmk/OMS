@@ -1,18 +1,22 @@
 package com.oms.inventory.service;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.oms.common.kafka.KafkaEventPublisher;
 import com.oms.inventory.dto.ReservationRequest;
 import com.oms.inventory.dto.ReservationResponse;
 import com.oms.inventory.exception.InsufficientStockException;
 import com.oms.inventory.exception.InventoryNotFoundException;
 import com.oms.inventory.model.Inventory;
 import com.oms.inventory.repository.InventoryRepository;
+
+import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import com.oms.inventory.event.KafkaEventPublisher;
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +27,7 @@ public class InventoryService {
     private final KafkaEventPublisher kafkaEventPublisher;
 
     @Transactional
+    @Timed(value = "inventory.reserve", description = "Reserve inventory for an order")
     public ReservationResponse reserveInventory(ReservationRequest request) {
         log.info("Reserving inventory for order: {}", request.getOrderId());
 
@@ -57,6 +62,7 @@ public class InventoryService {
     }
 
     @Transactional
+    @Timed(value = "inventory.release", description = "Release reserved inventory for an order")
     public ReservationResponse releaseInventory(ReservationRequest request) {
         log.info("Releasing inventory for order: {}", request.getOrderId());
 
@@ -89,6 +95,7 @@ public class InventoryService {
     }
 
     @Transactional
+    @Timed(value = "inventory.add", description = "Add a new product")
     public com.oms.inventory.dto.InventoryDto addProduct(com.oms.inventory.dto.InventoryDto inventoryDto) {
         log.info("Adding new product: {}", inventoryDto.productName());
         Inventory inventory = Inventory.builder()
@@ -103,6 +110,7 @@ public class InventoryService {
     }
 
     @Transactional
+    @Timed(value = "inventory.update", description = "Update product or stock")
     public com.oms.inventory.dto.InventoryDto updateProduct(Long id, com.oms.inventory.dto.InventoryDto inventoryDto) {
         log.info("Updating product: {}", id);
         Inventory inventory = inventoryRepository.findById(id)
@@ -122,6 +130,7 @@ public class InventoryService {
     }
 
     @Transactional(readOnly = true)
+    @Timed(value = "inventory.get", description = "Get product by id")
     public com.oms.inventory.dto.InventoryDto getProduct(Long id) {
         Inventory inventory = inventoryRepository.findById(id)
                 .orElseThrow(() -> new InventoryNotFoundException("Product not found: " + id));
@@ -129,6 +138,7 @@ public class InventoryService {
     }
 
     @Transactional(readOnly = true)
+    @Timed(value = "inventory.list", description = "List available products")
     public java.util.List<com.oms.inventory.dto.InventoryDto> getAllAvailableProducts() {
         return inventoryRepository.findAll().stream()
                 .filter(i -> "ACTIVE".equals(i.getStatus()) && i.getAvailableQuantity() > 0)
@@ -145,3 +155,4 @@ public class InventoryService {
                 inventory.getStatus());
     }
 }
+

@@ -1,5 +1,18 @@
 package com.oms.order.service;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.oms.common.kafka.KafkaEventPublisher;
 import com.oms.order.client.InventoryClient;
 import com.oms.order.dto.InventoryResponse;
 import com.oms.order.dto.OrderDto;
@@ -11,20 +24,10 @@ import com.oms.order.model.Order;
 import com.oms.order.model.OrderItem;
 import com.oms.order.model.OrderStatus;
 import com.oms.order.repository.OrderRepository;
+
+import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import com.oms.order.event.KafkaEventPublisher;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +41,7 @@ public class OrderServiceImpl implements OrderService {
 
         @Override
         @Transactional
+        @Timed(value = "order.create", description = "Time to create order end-to-end")
         public OrderDto.OrderResponse createOrder(Long userId, OrderDto.CreateOrderRequest request) {
                 BigDecimal totalAmount = BigDecimal.ZERO;
 
@@ -139,6 +143,7 @@ public class OrderServiceImpl implements OrderService {
 
         @Override
         @Transactional
+        @Timed(value = "order.inventory.reserved", description = "Handle inventory reserved event")
         public void handleInventoryReserved(Long orderId) {
                 log.info("Handling INVENTORY_RESERVED for order: {}", orderId);
                 Order order = orderRepository.findById(orderId)
@@ -158,6 +163,7 @@ public class OrderServiceImpl implements OrderService {
 
         @Override
         @Transactional
+        @Timed(value = "order.inventory.failed", description = "Handle inventory failed event")
         public void handleInventoryFailed(Long orderId) {
                 log.info("Handling INVENTORY_FAILED for order: {}", orderId);
                 Order order = orderRepository.findById(orderId)
@@ -169,6 +175,7 @@ public class OrderServiceImpl implements OrderService {
 
         @Override
         @Transactional
+        @Timed(value = "order.payment.success", description = "Handle payment success event")
         public void handlePaymentSuccess(Long orderId) {
                 log.info("Handling PAYMENT_SUCCESSFUL for order: {}", orderId);
                 Order order = orderRepository.findById(orderId)
@@ -195,6 +202,7 @@ public class OrderServiceImpl implements OrderService {
 
         @Override
         @Transactional
+        @Timed(value = "order.payment.failed", description = "Handle payment failed event")
         public void handlePaymentFailed(Long orderId) {
                 log.info("Handling PAYMENT_FAILED for order: {}", orderId);
                 Order order = orderRepository.findById(orderId)
@@ -230,3 +238,4 @@ public class OrderServiceImpl implements OrderService {
                                 items);
         }
 }
+
