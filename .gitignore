@@ -1,0 +1,7 @@
+# Build outputs
+**/target/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+*.log

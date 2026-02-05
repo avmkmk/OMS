@@ -1,0 +1,6 @@
+CREATE DATABASE order_db;
+CREATE DATABASE inventory_db;
+CREATE DATABASE payment_db;
+GRANT ALL PRIVILEGES ON DATABASE order_db TO oms_user;
+GRANT ALL PRIVILEGES ON DATABASE inventory_db TO oms_user;
+GRANT ALL PRIVILEGES ON DATABASE payment_db TO oms_user;

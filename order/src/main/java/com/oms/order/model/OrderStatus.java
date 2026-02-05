@@ -1,0 +1,13 @@
+package com.oms.order.model;
+
+public enum OrderStatus {
+    CREATED,
+    INVENTORY_RESERVED,
+    AWAITING_PAYMENT,
+    PAYMENT_PENDING,
+    PAYMENT_SUCCESSFUL,
+    COMPLETED,
+    INVENTORY_FAILED,
+    PAYMENT_FAILED,
+    CANCELLED
+}

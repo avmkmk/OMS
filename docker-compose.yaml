@@ -1,0 +1,141 @@
+version: '3.8'
+
+services:
+  iamDb:
+    image: postgres:15
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: oms_user
+      POSTGRES_PASSWORD: new_password
+      POSTGRES_DB: iam_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U oms_user -d iam_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  iam-service:
+    build:
+      context: ./iam
+      dockerfile: Dockerfile
+    container_name: iam_service
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://iamDb:5432/iam_db
+      SPRING_DATASOURCE_USERNAME: oms_user
+      SPRING_DATASOURCE_PASSWORD: new_password
+    depends_on:
+      iamDb:
+        condition: service_healthy
+
+  order-service:
+    build:
+      context: ./order
+      dockerfile: Dockerfile
+    container_name: order_service
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://iamDb:5432/order_db
+      SPRING_DATASOURCE_USERNAME: oms_user
+      SPRING_DATASOURCE_PASSWORD: new_password
+      SPRING_FLYWAY_URL: jdbc:postgresql://iamDb:5432/order_db
+      INVENTORY_SERVICE_URL: http://inventory-service:8082
+      PAYMENT_SERVICE_URL: http://payment-service:8083
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      iamDb:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+
+  inventory-service:
+    build:
+      context: ./inventory
+      dockerfile: Dockerfile
+    container_name: inventory_service
+    restart: always
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://iamDb:5432/inventory_db
+      SPRING_DATASOURCE_USERNAME: oms_user
+      SPRING_DATASOURCE_PASSWORD: new_password
+      SPRING_FLYWAY_URL: jdbc:postgresql://iamDb:5432/inventory_db
+      IAM_SERVICE_URL: http://iam-service:8080
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      iamDb:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+
+  payment-service:
+    build:
+      context: ./payment
+      dockerfile: Dockerfile
+    container_name: payment_service
+    restart: always
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://iamDb:5432/payment_db
+      SPRING_DATASOURCE_USERNAME: oms_user
+      SPRING_DATASOURCE_PASSWORD: new_password
+      SPRING_FLYWAY_URL: jdbc:postgresql://iamDb:5432/payment_db
+      IAM_SERVICE_URL: http://iam-service:8080
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      iamDb:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+
+  notification-service:
+    build:
+      context: ./notification
+      dockerfile: Dockerfile
+    container_name: notification_service
+    restart: always
+    ports:
+      - "8084:8084"
+    environment:
+      SERVER_PORT: 8084
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      kafka:
+        condition: service_started
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+volumes:
+  postgres_data:
