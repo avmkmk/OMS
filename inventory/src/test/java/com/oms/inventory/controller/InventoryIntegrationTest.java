@@ -18,12 +18,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oms.inventory.dto.InventoryDto;
 import com.oms.inventory.dto.ReservationRequest;
 import com.oms.inventory.model.Inventory;
 import com.oms.inventory.repository.InventoryRepository;
+import com.oms.common.kafka.KafkaEventPublisher;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -33,6 +35,9 @@ public class InventoryIntegrationTest {
 
         @Autowired
         private MockMvc mockMvc;
+
+        @MockBean
+        private KafkaEventPublisher kafkaEventPublisher;
 
         @Autowired
         private InventoryRepository inventoryRepository;

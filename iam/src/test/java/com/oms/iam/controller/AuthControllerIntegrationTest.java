@@ -10,9 +10,11 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.oms.iam.dto.AuthDto;
 import com.oms.iam.model.Role;
+import com.oms.common.kafka.KafkaEventPublisher;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -20,6 +22,9 @@ public class AuthControllerIntegrationTest {
 
     @Autowired
     private TestRestTemplate restTemplate;
+
+    @MockBean
+    private KafkaEventPublisher kafkaEventPublisher;
 
     @Test
     void testRegisterAndLogin_Success() {

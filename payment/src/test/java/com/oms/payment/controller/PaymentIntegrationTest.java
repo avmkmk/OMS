@@ -16,10 +16,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oms.payment.dto.PaymentRequest;
 import com.oms.payment.repository.PaymentRepository;
+import com.oms.common.kafka.KafkaEventPublisher;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -29,6 +31,9 @@ public class PaymentIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockBean
+    private KafkaEventPublisher kafkaEventPublisher;
 
     @Autowired
     private PaymentRepository paymentRepository;
@@ -46,7 +51,7 @@ public class PaymentIntegrationTest {
         PaymentRequest request = new PaymentRequest(100L, new BigDecimal("100.00"), "USD");
 
         mockMvc.perform(post("/payments")
-                .with(jwt())
+                .with(jwt().authorities(() -> "ROLE_USER"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())

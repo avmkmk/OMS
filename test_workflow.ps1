@@ -11,12 +11,15 @@ Start-Sleep -Seconds 15
 # Try to clear previous data if needed (optional, just to be clean)
 # But here we just use a new user email each time or depend on unique email failure which we catch
 
-$Email = "testuser_$(Get-Random)@example.com"
+$uniqueId = Get-Date -Format "yyyyMMddHHmmss"
+$Email = "testuser_$uniqueId@example.com"
 
 Write-Host "--- 1. Registering and Logging in ---" -ForegroundColor Cyan
 $RegBody = @{
     email    = $Email
     password = "password123"
+    name     = "Test Workflow User"
+    role     = "ADMIN"
 } | ConvertTo-Json
 
 try {

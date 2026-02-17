@@ -5,3 +5,7 @@
 .DS_Store
 Thumbs.db
 *.log
+.vscode/
+
+# Project specific
+oms-verify.skill

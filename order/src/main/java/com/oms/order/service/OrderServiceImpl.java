@@ -54,10 +54,12 @@ public class OrderServiceImpl implements OrderService {
                 List<ReservationRequest.ItemRequest> reservationItems = new ArrayList<>();
 
                 for (OrderDto.OrderItemRequest itemRequest : request.items()) {
+                        log.info("Processing item: {}", itemRequest.productId());
                         // 1. Fetch Product from Inventory (Source of Truth)
                         InventoryResponse product = inventoryClient.getProductById(itemRequest.productId());
 
                         if (product == null) {
+                                log.error("Product null for id: {}", itemRequest.productId());
                                 throw new ProductNotFoundException("Product not found: " + itemRequest.productId());
                         }
 

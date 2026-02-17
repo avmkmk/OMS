@@ -39,6 +39,9 @@ class AuthServiceTest {
     @Mock
     private JwtUtil jwtUtil;
 
+    @Mock
+    private com.oms.common.kafka.KafkaEventPublisher kafkaEventPublisher;
+
     @InjectMocks
     private AuthService authService;
 

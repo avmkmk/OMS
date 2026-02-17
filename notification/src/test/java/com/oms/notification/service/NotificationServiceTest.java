@@ -3,6 +3,7 @@ package com.oms.notification.service;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 import java.util.Map;
 
@@ -45,7 +46,7 @@ class NotificationServiceTest {
                 .payload(Map.of("orderId", "12345"))
                 .build();
 
-        when(senderFactory.getSender("EMAIL")).thenReturn(emailSender);
+        lenient().when(senderFactory.getSender("EMAIL")).thenReturn(emailSender);
 
         // Act & Assert
         // The service has a 20% random failure rate, so we might need to retry in the
@@ -76,7 +77,7 @@ class NotificationServiceTest {
                 .payload(Map.of("phone", "1234567890"))
                 .build();
 
-        when(senderFactory.getSender("SMS")).thenReturn(smsSender);
+        lenient().when(senderFactory.getSender("SMS")).thenReturn(smsSender);
 
         // Act & Assert
         try {
@@ -99,7 +100,7 @@ class NotificationServiceTest {
                 .payload(Map.of("phone", "12345"))
                 .build();
 
-        when(senderFactory.getSender("SMS")).thenReturn(smsSender);
+        lenient().when(senderFactory.getSender("SMS")).thenReturn(smsSender);
 
         // Act
         try {
@@ -119,7 +120,7 @@ class NotificationServiceTest {
                 .payload(Map.of("orderId", "12345"))
                 .build();
 
-        when(senderFactory.getSender("EMAIL")).thenReturn(emailSender);
+        lenient().when(senderFactory.getSender("EMAIL")).thenReturn(emailSender);
 
         // Act
         try {

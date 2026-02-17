@@ -9,8 +9,11 @@ import com.oms.iam.model.Status;
 import com.oms.iam.model.User;
 import com.oms.iam.repository.UserRepository;
 import com.oms.iam.security.JwtUtil;
+import com.oms.common.kafka.KafkaEventPublisher;
 
 import lombok.RequiredArgsConstructor;
+import java.util.Map;
+import java.util.HashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +22,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final KafkaEventPublisher kafkaEventPublisher;
 
     public void register(AuthDto.AuthRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -33,7 +37,21 @@ public class AuthService {
                 .status(Status.ACTIVE)
                 .build();
 
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        // Publish event
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("userId", savedUser.getId());
+        payload.put("email", savedUser.getEmail());
+        payload.put("name", savedUser.getName());
+
+        kafkaEventPublisher.publishEvent(
+                "user-events",
+                "USER_REGISTERED",
+                "USER",
+                savedUser.getId(),
+                "iam-service",
+                payload);
     }
 
     public AuthDto.AuthResponse login(AuthDto.AuthRequest request) {

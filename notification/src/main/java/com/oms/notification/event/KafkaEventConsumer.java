@@ -51,4 +51,23 @@ public class KafkaEventConsumer {
 
         notificationService.sendNotification(notificationEvent);
     }
+
+    @KafkaListener(topics = "user-events", groupId = "notification-service-group")
+    public void consumeUserEvent(Map<String, Object> event) {
+        String eventType = (String) event.get("eventType");
+        log.info("Received user event: {}", eventType);
+
+        if ("USER_REGISTERED".equals(eventType)) {
+            Map<String, Object> payload = (Map<String, Object>) event.get("payload");
+            String userId = payload != null ? String.valueOf(payload.get("userId")) : "unknown";
+
+            NotificationEvent notificationEvent = NotificationEvent.builder()
+                    .eventType(eventType)
+                    .userId(userId)
+                    .payload(payload != null ? payload : Map.of())
+                    .build();
+
+            notificationService.sendNotification(notificationEvent);
+        }
+    }
 }
