@@ -1,8 +1,6 @@
 package com.oms.order.client;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -13,12 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestTemplate;
 
-import com.oms.order.dto.InventoryResponse;
 import com.oms.order.exception.ServiceUnavailableException;
 
+import feign.FeignException;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.retry.RetryRegistry;
 
@@ -30,7 +26,7 @@ public class InventoryClientResilienceTest {
     private InventoryClient inventoryClient;
 
     @MockBean
-    private RestTemplate restTemplate;
+    private InventoryFeignClient inventoryFeignClient;
 
     @Autowired
     private CircuitBreakerRegistry circuitBreakerRegistry;
@@ -47,8 +43,14 @@ public class InventoryClientResilienceTest {
     void testGetProductById_RetryAndFallback() {
         // Arrange
         Long productId = 1L;
-        when(restTemplate.getForObject(any(String.class), eq(InventoryResponse.class)))
-                .thenThrow(new ResourceAccessException("Connection timeout"));
+        when(inventoryFeignClient.getProductById(productId))
+                .thenThrow(FeignException.errorStatus("getProductById",
+                        feign.Response.builder()
+                                .status(500)
+                                .reason("Internal Server Error")
+                                .request(feign.Request.create(feign.Request.HttpMethod.GET, "/inventory/products/1",
+                                        new java.util.HashMap<>(), null, java.nio.charset.StandardCharsets.UTF_8, null))
+                                .build()));
 
         // Act & Assert
         assertThrows(ServiceUnavailableException.class, () -> {
@@ -56,15 +58,21 @@ public class InventoryClientResilienceTest {
         });
 
         // Verify retry (max 3 attempts configured)
-        verify(restTemplate, times(3)).getForObject(any(String.class), eq(InventoryResponse.class));
+        verify(inventoryFeignClient, times(3)).getProductById(productId);
     }
 
     @Test
     void testGetProductById_CircuitBreakerOpens() {
         // Arrange
         Long productId = 1L;
-        when(restTemplate.getForObject(any(String.class), eq(InventoryResponse.class)))
-                .thenThrow(new ResourceAccessException("Service Down"));
+        when(inventoryFeignClient.getProductById(productId))
+                .thenThrow(FeignException.errorStatus("getProductById",
+                        feign.Response.builder()
+                                .status(500)
+                                .reason("Internal Server Error")
+                                .request(feign.Request.create(feign.Request.HttpMethod.GET, "/inventory/products/1",
+                                        new java.util.HashMap<>(), null, java.nio.charset.StandardCharsets.UTF_8, null))
+                                .build()));
 
         // Act: Trigger failures to reach threshold (minimumNumberOfCalls=5)
         for (int i = 0; i < 5; i++) {
@@ -73,13 +81,13 @@ public class InventoryClientResilienceTest {
             });
         }
 
-        // The 6th call should be blocked by Circuit Breaker without calling RestTemplate
+        // The 6th call should be blocked by Circuit Breaker without calling FeignClient
         assertThrows(ServiceUnavailableException.class, () -> {
             inventoryClient.getProductById(productId);
         });
 
-        // Total calls to restTemplate should be 5 (minimumNumberOfCalls threshold)
+        // Total calls to inventoryFeignClient should be 5 (minimumNumberOfCalls threshold)
         // because Retry is the outer aspect and calls CB for each attempt.
-        verify(restTemplate, times(5)).getForObject(any(String.class), eq(InventoryResponse.class));
+        verify(inventoryFeignClient, times(5)).getProductById(productId);
     }
 }

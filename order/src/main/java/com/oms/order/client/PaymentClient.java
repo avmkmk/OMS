@@ -1,9 +1,6 @@
 package com.oms.order.client;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 
 import com.oms.order.dto.PaymentRequest;
 import com.oms.order.dto.PaymentResponse;
@@ -19,10 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PaymentClient {
 
-    private final RestTemplate restTemplate;
-
-    @Value("${payment.service.url}")
-    private String paymentServiceUrl;
+    private final PaymentFeignClient paymentFeignClient;
 
     /**
      * Processes payment for an order.
@@ -37,15 +31,7 @@ public class PaymentClient {
         if (request == null) {
             throw new IllegalArgumentException("Payment request cannot be null");
         }
-        try {
-            return restTemplate.postForObject(paymentServiceUrl + "/payments", request, PaymentResponse.class);
-        } catch (HttpClientErrorException e) {
-            log.error("Error processing payment: {}", e.getMessage());
-            throw new RuntimeException("Failed to process payment: " + e.getResponseBodyAsString());
-        } catch (Exception e) {
-            log.error("Error calling payment service", e);
-            throw e;
-        }
+        return paymentFeignClient.processPayment(request);
     }
 
     /**

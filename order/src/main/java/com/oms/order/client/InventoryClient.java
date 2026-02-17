@@ -1,9 +1,6 @@
 package com.oms.order.client;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 
 import com.oms.order.dto.InventoryResponse;
 import com.oms.order.dto.ReservationRequest;
@@ -19,10 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class InventoryClient {
 
-    private final RestTemplate restTemplate;
-
-    @Value("${inventory.service.url}")
-    private String inventoryServiceUrl;
+    private final InventoryFeignClient inventoryFeignClient;
 
     /**
      * Fetches product details from the Inventory service.
@@ -38,9 +32,8 @@ public class InventoryClient {
             throw new IllegalArgumentException("Product ID cannot be null");
         }
         try {
-            return restTemplate.getForObject(inventoryServiceUrl + "/inventory/products/" + productId,
-                    InventoryResponse.class);
-        } catch (HttpClientErrorException.NotFound e) {
+            return inventoryFeignClient.getProductById(productId);
+        } catch (feign.FeignException.NotFound e) {
             log.error("Product not found: {}", productId);
             return null;
         } catch (Exception e) {
@@ -62,10 +55,10 @@ public class InventoryClient {
             throw new IllegalArgumentException("Reservation request cannot be null");
         }
         try {
-            restTemplate.postForObject(inventoryServiceUrl + "/inventory/reserve", request, Void.class);
-        } catch (HttpClientErrorException e) {
+            inventoryFeignClient.reserveInventory(request);
+        } catch (feign.FeignException e) {
             log.error("Error reserving inventory: {}", e.getMessage());
-            throw new RuntimeException("Failed to reserve inventory: " + e.getResponseBodyAsString());
+            throw new RuntimeException("Failed to reserve inventory: " + e.contentUTF8());
         } catch (Exception e) {
             log.error("Error calling inventory service", e);
             throw e;
