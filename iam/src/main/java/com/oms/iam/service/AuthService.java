@@ -4,6 +4,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.oms.iam.dto.AuthDto;
+import com.oms.iam.exception.DuplicateEmailException;
+import com.oms.iam.exception.InactiveUserException;
+import com.oms.iam.exception.InvalidCredentialsException;
 import com.oms.iam.model.Role;
 import com.oms.iam.model.Status;
 import com.oms.iam.model.User;
@@ -26,7 +29,7 @@ public class AuthService {
 
     public void register(AuthDto.AuthRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already exists");
+            throw new DuplicateEmailException("Email already exists");
         }
 
         User user = User.builder()
@@ -56,14 +59,14 @@ public class AuthService {
 
     public AuthDto.AuthResponse login(AuthDto.AuthRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid credentials")); // shouldnt this be only invalid email
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid credentials"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new RuntimeException("Invalid credentials"); // shouldnt this be only invalid password
+            throw new InvalidCredentialsException("Invalid credentials");
         }
 
         if (user.getStatus() != Status.ACTIVE) {
-            throw new RuntimeException("User is not active"); // Better to have global exception handler
+            throw new InactiveUserException("User is not active");
         }
 
         String token = jwtUtil.generateToken(user);

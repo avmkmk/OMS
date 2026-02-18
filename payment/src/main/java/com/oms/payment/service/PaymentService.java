@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.oms.common.kafka.KafkaEventPublisher;
 import com.oms.payment.dto.PaymentRequest;
 import com.oms.payment.dto.PaymentResponse;
+import com.oms.payment.exception.PaymentNotFoundException;
 import com.oms.payment.model.Payment;
 import com.oms.payment.model.PaymentStatus;
 import com.oms.payment.repository.PaymentRepository;
@@ -94,7 +95,7 @@ public class PaymentService {
     public PaymentResponse getPaymentByOrderId(Long orderId) {
         return paymentRepository.findByOrderId(orderId)
                 .map(this::mapToResponse)
-                .orElseThrow(() -> new RuntimeException("Payment not found for order: " + orderId));
+                .orElseThrow(() -> new PaymentNotFoundException("Payment not found for order: " + orderId));
     }
 
     private PaymentResponse mapToResponse(Payment payment) {

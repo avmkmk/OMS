@@ -110,7 +110,7 @@ public class InventoryIntegrationTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                                 .andExpect(status().isBadRequest())
-                                .andExpect(jsonPath("$.message")
+                                .andExpect(jsonPath("$.detail")
                                                 .value("Insufficient stock for product: " + item.getProductName()));
         }
 }

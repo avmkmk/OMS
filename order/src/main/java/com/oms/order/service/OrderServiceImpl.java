@@ -18,6 +18,7 @@ import com.oms.order.dto.InventoryResponse;
 import com.oms.order.dto.OrderDto;
 import com.oms.order.dto.ReservationRequest;
 import com.oms.order.exception.OrderNotFoundException;
+import com.oms.order.exception.ProductNotActiveException;
 import com.oms.order.exception.ProductNotFoundException;
 import com.oms.order.exception.UnauthorizedAccessException;
 import com.oms.order.model.Order;
@@ -64,7 +65,7 @@ public class OrderServiceImpl implements OrderService {
                         }
 
                         if (!"ACTIVE".equals(product.status())) {
-                                throw new RuntimeException("Product is not active: " + product.productName());
+                                throw new ProductNotActiveException("Product is not active: " + product.productName());
                         }
 
                         // 2. Use Price from Inventory, NOT from Client Request

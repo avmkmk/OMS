@@ -21,6 +21,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.oms.iam.dto.AuthDto;
+import com.oms.iam.exception.DuplicateEmailException;
+import com.oms.iam.exception.InactiveUserException;
+import com.oms.iam.exception.InvalidCredentialsException;
 import com.oms.iam.model.Role;
 import com.oms.iam.model.Status;
 import com.oms.iam.model.User;
@@ -87,7 +90,7 @@ class AuthServiceTest {
         when(userRepository.findByEmail(validRegisterRequest.getEmail())).thenReturn(Optional.of(mockUser));
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        DuplicateEmailException exception = assertThrows(DuplicateEmailException.class,
                 () -> authService.register(validRegisterRequest));
 
         assertEquals("Email already exists", exception.getMessage());
@@ -132,7 +135,7 @@ class AuthServiceTest {
         when(passwordEncoder.matches(loginRequest.getPassword(), mockUser.getPasswordHash())).thenReturn(false);
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        InvalidCredentialsException exception = assertThrows(InvalidCredentialsException.class,
                 () -> authService.login(loginRequest));
 
         assertEquals("Invalid credentials", exception.getMessage());
@@ -151,7 +154,7 @@ class AuthServiceTest {
         when(userRepository.findByEmail(loginRequest.getEmail())).thenReturn(Optional.empty());
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        InvalidCredentialsException exception = assertThrows(InvalidCredentialsException.class,
                 () -> authService.login(loginRequest));
 
         assertEquals("Invalid credentials", exception.getMessage());
@@ -179,7 +182,7 @@ class AuthServiceTest {
         when(passwordEncoder.matches(loginRequest.getPassword(), inactiveUser.getPasswordHash())).thenReturn(true);
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        InactiveUserException exception = assertThrows(InactiveUserException.class,
                 () -> authService.login(loginRequest));
 
         assertEquals("User is not active", exception.getMessage());
