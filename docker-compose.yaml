@@ -32,9 +32,12 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://iamDb:5432/iam_db
       SPRING_DATASOURCE_USERNAME: oms_user
       SPRING_DATASOURCE_PASSWORD: new_password
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     depends_on:
       iamDb:
         condition: service_healthy
+      kafka:
+        condition: service_started
 
   order-service:
     build:
